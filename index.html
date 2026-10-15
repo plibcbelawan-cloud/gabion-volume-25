@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Majalah GABION Volume 25 – Edisi September 2026, Bea Cukai Belawan">
+<title>GABION Volume 25</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@400;500;600&display=swap">
+<style>
+/* Layout: one dark harbour-night stage, the magazine centred as a physical book, a slim control bar below. Single deliberate dark look. */
+:root{
+  --stage:#0b1c33;
+  --stage-2:#11284a;
+  --ink:#e9eef6;
+  --muted:#93a6c2;
+  --gold:#f2c230;
+  --maroon:#7b2d3e;
+  --line:rgba(233,238,246,.14);
+  --f-display:"Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --f-ui:"Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{
+  background:radial-gradient(120% 90% at 50% 35%, var(--stage-2) 0%, var(--stage) 62%) fixed, var(--stage);
+  color:var(--ink);font-family:var(--f-ui);
+  display:flex;flex-direction:column;overflow:hidden;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  box-sizing:border-box;
+}
+header{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding-block:8px 4px;
+}
+.mast{display:flex;align-items:baseline;gap:12px;min-width:0}
+.mast h1{font-family:var(--f-display);font-weight:700;font-size:1.5rem;letter-spacing:.14em;margin:0;line-height:1}
+.mast h1 span{color:var(--gold)}
+.mast p{margin:0;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.edition{font-size:.75rem;color:var(--muted);letter-spacing:.06em}
+
+#stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+#book-wrap{width:100%;height:100%;max-width:1240px;display:flex;align-items:center;justify-content:center}
+#book{margin:0 auto}
+.page{background:#fff;overflow:hidden}
+.page img{width:100%;height:100%;object-fit:cover;display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.page.--left{box-shadow:inset -18px 0 24px -18px rgba(0,0,0,.35)}
+.page.--right{box-shadow:inset 18px 0 24px -18px rgba(0,0,0,.35)}
+#book .stf__block{filter:drop-shadow(0 22px 30px rgba(0,0,0,.45))}
+
+.side{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(11,28,51,.6);color:var(--ink);cursor:pointer;display:grid;place-items:center;
+  transition:background .2s,border-color .2s;z-index:5;
+}
+.side:hover{background:var(--maroon);border-color:var(--maroon)}
+.side:disabled{opacity:.25;cursor:default;background:rgba(11,28,51,.6);border-color:var(--line)}
+#prev{left:0}#next{right:0}
+.side svg{width:20px;height:20px}
+
+footer{
+  display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+  padding-block:6px max(10px, env(safe-area-inset-bottom, 0px));
+}
+.btn{
+  font:500 .8rem var(--f-ui);color:var(--ink);background:transparent;border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.counter{font-variant-numeric:tabular-nums;font-size:.85rem;min-width:9ch;text-align:center}
+.counter b{color:var(--gold);font-weight:600}
+.hint{font-size:.7rem;color:var(--muted)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+#thumbs{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:rgba(8,20,38,.96);border-top:1px solid var(--line);
+  padding-block:14px max(14px, env(safe-area-inset-bottom, 0px));
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;gap:10px;overflow-x:auto;transform:translateY(100%);transition:transform .3s ease;
+}
+#thumbs.open{transform:none}
+#thumbs button{flex:0 0 auto;border:2px solid transparent;padding:0;background:none;cursor:pointer;border-radius:3px;position:relative}
+#thumbs button.on{border-color:var(--gold)}
+#thumbs img{height:110px;width:auto;display:block;border-radius:2px}
+#thumbs span{position:absolute;bottom:3px;right:4px;font-size:.65rem;background:rgba(0,0,0,.65);padding:1px 5px;border-radius:3px}
+
+#loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:.85rem}
+
+.btn.primary{background:var(--gold);color:#0b1c33;border-color:var(--gold);font-weight:600}
+.btn.primary:hover{background:#ffd451;color:#0b1c33}
+#book{cursor:zoom-in}
+
+/* Reader: full-screen high-resolution page view */
+#reader{position:fixed;inset:0;z-index:50;background:rgba(5,12,24,.97);display:flex;flex-direction:column}
+.r-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  padding-block:calc(8px + env(safe-area-inset-top, 0px)) 8px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  border-bottom:1px solid var(--line);
+}
+.r-group{display:flex;align-items:center;gap:6px}
+.r-bar .btn{padding:6px 12px}
+.r-zoom{font-variant-numeric:tabular-nums;font-size:.8rem;min-width:5ch;text-align:center;color:var(--muted)}
+#r-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;cursor:grab;touch-action:pan-x pan-y pinch-zoom}
+#r-scroll.drag{cursor:grabbing}
+#r-inner{margin:0 auto;padding-block:16px 40px;padding-inline:16px;box-sizing:content-box}
+#r-img{display:block;width:100%;height:auto;max-width:none;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.5);user-select:none;-webkit-user-drag:none}
+.r-hint{text-align:center;font-size:.72rem;color:var(--muted);padding-block:6px max(8px, env(safe-area-inset-bottom, 0px))}
+@media (max-width:640px){
+  .mast p,.hint,.r-hint{display:none}
+  .r-bar .btn{padding:6px 10px;font-size:.75rem}
+  .side{width:36px;height:36px;top:auto;bottom:-6px;transform:none}
+  #thumbs img{height:84px}
+}
+@media (prefers-reduced-motion:reduce){#thumbs{transition:none}}
+</style>
+
+</head>
+<body>
+<header>
+  <div class="mast">
+    <h1>GAB<span>I</span>ON</h1>
+    <p>Garda Budaya Informasi Bea Cukai Belawan</p>
+  </div>
+  <div class="edition">Volume 25 · Edisi September 2026</div>
+</header>
+
+<main id="stage">
+  <div id="loading">Memuat majalah…</div>
+  <button class="side" id="prev" aria-label="Halaman sebelumnya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+  <div id="book-wrap"><div id="book"></div></div>
+  <button class="side" id="next" aria-label="Halaman berikutnya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+</main>
+
+<footer>
+  <button class="btn" id="first" title="Ke sampul">⟲ Sampul</button>
+  <div class="counter" id="counter">Hal. <b>1</b> / 20</div>
+  <button class="btn primary" id="readBtn">🔍 Perbesar &amp; Baca</button>
+  <button class="btn" id="gridBtn" aria-expanded="false">Semua halaman</button>
+  <span class="hint">Klik dua kali halaman untuk membaca lebih jelas</span>
+</footer>
+
+
+<div id="reader" hidden role="dialog" aria-modal="true" aria-label="Mode baca">
+  <div class="r-bar">
+    <div class="r-group">
+      <button class="btn" id="r-prev" aria-label="Halaman sebelumnya">‹ Sebelumnya</button>
+      <span class="counter" id="r-count">Hal. <b>1</b> / 20</span>
+      <button class="btn" id="r-next" aria-label="Halaman berikutnya">Berikutnya ›</button>
+    </div>
+    <div class="r-group">
+      <button class="btn" id="r-out" aria-label="Perkecil">−</button>
+      <span class="r-zoom" id="r-zoom">100%</span>
+      <button class="btn" id="r-in" aria-label="Perbesar">+</button>
+      <button class="btn" id="r-fit">Pas layar</button>
+      <button class="btn primary" id="r-close">✕ Tutup</button>
+    </div>
+  </div>
+  <div id="r-scroll"><div id="r-inner"><img id="r-img" alt=""></div></div>
+  <div class="r-hint">Scroll untuk membaca · Ctrl + scroll atau tombol +/− untuk zoom · Seret untuk menggeser · Esc untuk kembali</div>
+</div>
+
+<nav id="thumbs" aria-label="Daftar halaman"></nav>
+
+<script src="js/page-flip.browser.js"></script>
+<script>
+(function(){
+  const TOTAL = 20;
+  const src = i => 'pages/' + String(i).padStart(2,'0') + '.jpg';
+  const book = document.getElementById('book');
+  const thumbs = document.getElementById('thumbs');
+
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'page';
+    if (i === 1 || i === TOTAL) d.dataset.density = 'hard';
+    const img = document.createElement('img');
+    img.src = src(i); img.alt = 'Halaman ' + i; img.loading = i <= 4 ? 'eager' : 'lazy'; img.draggable = false;
+    d.appendChild(img);
+    book.appendChild(d);
+
+    const t = document.createElement('button');
+    t.type = 'button'; t.setAttribute('aria-label','Buka halaman ' + i);
+    t.innerHTML = '<img src="' + src(i) + '" alt="" loading="lazy"><span>' + i + '</span>';
+    t.addEventListener('click', () => { flip.flip(i - 1); toggleThumbs(false); });
+    thumbs.appendChild(t);
+  }
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flip = new St.PageFlip(book, {
+    width: 550, height: 778, size: 'stretch',
+    minWidth: 200, maxWidth: 1100, minHeight: 283, maxHeight: 1557,
+    showCover: true, usePortrait: true, mobileScrollSupport: false,
+    maxShadowOpacity: 0.55, flippingTime: reduce ? 300 : 900, drawShadow: true
+  });
+  flip.loadFromHTML(book.querySelectorAll('.page'));
+
+  function fit(){
+    const stage = document.getElementById('stage');
+    const wrap = document.getElementById('book-wrap');
+    const h = stage.clientHeight - 8;
+    const w = Math.min(wrap.clientWidth - (innerWidth > 640 ? 110 : 0), 1240);
+    const portrait = flip.getOrientation && flip.getOrientation() === 'portrait';
+    const ratio = 1100/1557;
+    let bookW = portrait ? Math.min(w, h * ratio) : Math.min(w, h * ratio * 2);
+    book.style.width = Math.floor(bookW) + 'px';
+    flip.update && flip.update();
+  }
+
+  const counter = document.getElementById('counter');
+  function sync(){
+    const idx = flip.getCurrentPageIndex();
+    const portrait = flip.getOrientation() === 'portrait';
+    const pair = !portrait && idx > 0 && idx < TOTAL - 1;
+    const left = pair ? (idx % 2 === 1 ? idx : idx - 1) : idx;
+    counter.innerHTML = 'Hal. <b>' + (pair ? (left + 1) + '–' + (left + 2) : (idx + 1)) + '</b> / ' + TOTAL;
+    document.getElementById('prev').disabled = idx === 0;
+    document.getElementById('next').disabled = idx >= TOTAL - 1;
+    [...thumbs.children].forEach((b,i) => b.classList.toggle('on', pair ? (i === left || i === left + 1) : i === idx));
+  }
+
+  flip.on('init', () => { document.getElementById('loading').hidden = true; fit(); sync(); });
+  flip.on('flip', sync);
+  flip.on('changeOrientation', () => { fit(); sync(); });
+  window.addEventListener('resize', () => { fit(); });
+
+  document.getElementById('prev').onclick = () => flip.flipPrev();
+  document.getElementById('next').onclick = () => flip.flipNext();
+  document.getElementById('first').onclick = () => flip.flip(0);
+  document.addEventListener('keydown', e => {
+    const r = document.getElementById('reader');
+    if (!r.hidden) {
+      if (e.key === 'Escape') document.getElementById('r-close').click();
+      else if (e.key === 'ArrowRight') document.getElementById('r-next').click();
+      else if (e.key === 'ArrowLeft') document.getElementById('r-prev').click();
+      else if (e.key === '+' || e.key === '=') document.getElementById('r-in').click();
+      else if (e.key === '-') document.getElementById('r-out').click();
+      return;
+    }
+    if (e.key === 'ArrowRight') flip.flipNext();
+    else if (e.key === 'ArrowLeft') flip.flipPrev();
+    else if (e.key === 'Escape') toggleThumbs(false);
+  });
+
+
+  /* ---------- Reader ---------- */
+  const hd = i => 'hd/' + String(i).padStart(2,'0') + '.jpg';
+  const reader = document.getElementById('reader');
+  const rScroll = document.getElementById('r-scroll');
+  const rInner = document.getElementById('r-inner');
+  const rImg = document.getElementById('r-img');
+  let rPage = 1, rZoom = 1;
+  const BASE = () => Math.min(rScroll.clientWidth - 32, 900); // readable width at 100%
+
+  function rRender(keepTop){
+    rInner.style.width = Math.round(BASE() * rZoom) + 'px';
+    document.getElementById('r-zoom').textContent = Math.round(rZoom * 100) + '%';
+    if (!keepTop) rScroll.scrollTop = 0;
+  }
+  function rShow(n){
+    rPage = Math.max(1, Math.min(TOTAL, n));
+    rImg.src = hd(rPage); rImg.alt = 'Halaman ' + rPage;
+    document.getElementById('r-count').innerHTML = 'Hal. <b>' + rPage + '</b> / ' + TOTAL;
+    document.getElementById('r-prev').disabled = rPage === 1;
+    document.getElementById('r-next').disabled = rPage === TOTAL;
+    rScroll.scrollTo(0,0);
+    if (rPage < TOTAL) { const pre = new Image(); pre.src = hd(rPage + 1); }
+  }
+  function setZoom(z, cx, cy){
+    const old = rZoom; rZoom = Math.max(0.5, Math.min(3, z));
+    const r = rScroll.getBoundingClientRect();
+    const px = (cx ?? r.width/2), py = (cy ?? r.height/2);
+    const fx = (rScroll.scrollLeft + px) / rInner.offsetWidth, fy = (rScroll.scrollTop + py) / rInner.offsetHeight;
+    rRender(true);
+    rScroll.scrollLeft = fx * rInner.offsetWidth - px;
+    rScroll.scrollTop = fy * rInner.offsetHeight - py;
+  }
+  function openReader(n){
+    reader.hidden = false; document.body.style.overflow = 'hidden';
+    rZoom = 1; rRender(); rShow(n);
+    document.getElementById('r-close').focus();
+  }
+  function closeReader(){
+    reader.hidden = true;
+    const target = rPage - 1;
+    if (Math.abs(flip.getCurrentPageIndex() - target) > 1) flip.turnToPage(target);
+    sync();
+  }
+  function visiblePage(clientX){
+    const idx = flip.getCurrentPageIndex();
+    const portrait = flip.getOrientation() === 'portrait';
+    if (portrait || idx === 0 || idx === TOTAL - 1) return idx + 1;
+    const left = idx % 2 === 1 ? idx : idx - 1;
+    if (clientX == null) return left + 1;
+    const b = book.getBoundingClientRect();
+    return clientX < b.left + b.width / 2 ? left + 1 : left + 2;
+  }
+
+  document.getElementById('readBtn').onclick = () => openReader(visiblePage());
+  book.addEventListener('dblclick', e => openReader(visiblePage(e.clientX)));
+  let lastTap = 0;
+  book.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTap < 300 && e.changedTouches[0]) openReader(visiblePage(e.changedTouches[0].clientX));
+    lastTap = now;
+  });
+
+  document.getElementById('r-prev').onclick = () => rShow(rPage - 1);
+  document.getElementById('r-next').onclick = () => rShow(rPage + 1);
+  document.getElementById('r-in').onclick = () => setZoom(rZoom + 0.25);
+  document.getElementById('r-out').onclick = () => setZoom(rZoom - 0.25);
+  document.getElementById('r-fit').onclick = () => {
+    const h = rScroll.clientHeight - 56; const w = h * 1700/2406;
+    rZoom = Math.max(0.3, w / BASE()); rRender();
+  };
+  document.getElementById('r-close').onclick = closeReader;
+  rScroll.addEventListener('wheel', e => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const r = rScroll.getBoundingClientRect();
+    setZoom(rZoom * (e.deltaY < 0 ? 1.1 : 0.9), e.clientX - r.left, e.clientY - r.top);
+  }, {passive:false});
+  // drag to pan with mouse
+  let dragging = null;
+  rScroll.addEventListener('mousedown', e => { dragging = {x:e.clientX, y:e.clientY, l:rScroll.scrollLeft, t:rScroll.scrollTop}; rScroll.classList.add('drag'); e.preventDefault(); });
+  window.addEventListener('mousemove', e => { if (!dragging) return; rScroll.scrollLeft = dragging.l - (e.clientX - dragging.x); rScroll.scrollTop = dragging.t - (e.clientY - dragging.y); });
+  window.addEventListener('mouseup', () => { dragging = null; rScroll.classList.remove('drag'); });
+  window.addEventListener('resize', () => { if (!reader.hidden) rRender(true); });
+
+  const gridBtn = document.getElementById('gridBtn');
+  function toggleThumbs(force){
+    const open = force ?? !thumbs.classList.contains('open');
+    thumbs.classList.toggle('open', open);
+    gridBtn.setAttribute('aria-expanded', open);
+    gridBtn.textContent = open ? 'Tutup' : 'Semua halaman';
+  }
+  gridBtn.onclick = () => toggleThumbs();
+  setTimeout(()=>{ if(!document.getElementById('loading').hidden){ document.getElementById('loading').hidden = true; fit(); sync(); } }, 2500);
+})();
+</script>
+</body>
+</html>
